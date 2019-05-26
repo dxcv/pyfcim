@@ -9,11 +9,36 @@ import pymssql
 ###
 # 用于计算某只券的报买报卖时间节点
 ###
+# 持仓类
+class Position:
+    def __init__(self, direction: int, code: str,price: float, volume: int):
+        self.direction = direction
+        self.code = code
+        self.price = price
+        self.volume = volume
+
+# 下单类
+class Order:
+    def __init__(self, time: str, direction: int, code: str, price: float, volume: int):
+        self.time = time
+        self.direction = direction
+        self.code = code
+        self.price = price
+        self.volume = volume
+
+    def __repr__(self):
+        print("time:%(time)s-direction:%(direction)s-code:%(code)s-price:%(price)s-volume:%(volume)s " % {'time': time, 'direction': direction, 'code':code, 'price':price,'volume':volume})
+
+    def __eq__(self, other):
+        if np.all([self.direction == other.diretion, self.code == other.code, self.price == other.price, self.volume == other.volume]):
+            return True
+        else: return False
+
 class TradeSignal:
     TimeSeries = [] # 生成时间序列，规整化
     Seq = [] # 规整化后的时间序列
     CurrentSeqTime = 0 # 当前规整时间序列的最后一个时间节点
-
+    OrderList = []
     KAMASeries = []
     dt = 0
     dateRange = []
@@ -79,30 +104,30 @@ class TradeSignal:
             temp = list(np.array(self.Seq)[-30:,1])
             temp.append(indata.price)
             current_KAMA = talib.KAMA(np.array(temp).astype(float), 20)[-1]
-            if self.PositionPriceList.__len__() > 0:
-                if self.high - indata.price >= 0.05:
-                    print("%(Times)s  %(Codes)s: %(price)s 卖出" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                                  'price': indata.price})
-                    print("%(Times)s  %(Codes)s: %(price)s 卖出" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                                  'price': indata.price})
-                    self.PositionPriceList = []
-                    self.high = 0
 
             if self.PositionPriceList.__len__() == 0:
-                if indata.price >= self.TimeSeries[-1][1] and self.Seq[-1][1] - self.KAMASeries[-1]<-0.12 and indata.price >= current_KAMA - 1 and indata.price < current_KAMA-0.06:
+                if indata.price >= self.TimeSeries[-1][1] and self.Seq[-1][1] - self.KAMASeries[-1]<-0.12 and indata.price >= current_KAMA - 0.1 and indata.price < current_KAMA-0.06:
                 #if indata.price >= self.TimeSeries[-1][1] and self.Seq[-1][1] - self.KAMASeries[-1] < -0.06 and indata.price < current_KAMA - 0.04:
+                    temp_buy_order = Order(indata.Times, 1, indata.Codes, indata.price + 0.01 , 1)
+                    if temp_buy_order not in self.OrderList:
+                        print(temp_buy_order)
+                        self.OrderList.append(temp_buy_order)
+                    temp_sell_order = Order(indata.Times, 0, indata.Codes, indata.price + 0.02 , 1)
+                    if temp_sell_order not in self.OrderList:
+                        print(temp_sell_order)
+                        self.OrderList.append(temp_sell_order)
 
-                    print("%(Times)s  %(Codes)s: %(price)s 买入" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                                  'price': indata.price + 0.01})
-                    print("%(Times)s  %(Codes)s: %(price)s 卖出" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                                  'price': indata.price + 0.02})
+                    # self.PositionPriceList.append(indata.price)
 
-                    self.PositionPriceList.append(indata.price)
+                temp_buy_order = Order(indata.Times, 1, indata.Codes, self.KAMASeries[-1]-0.28, 1)
+                if temp_buy_order not in self.OrderList:
+                    print(temp_buy_order)
+                    self.OrderList.append(temp_buy_order)
+                temp_sell_order = Order(indata.Times, 0, indata.Codes, self.KAMASeries[-1] - 0.1, 1)
+                if temp_sell_order not in self.OrderList:
+                    print(temp_sell_order)
+                    self.OrderList.append(temp_sell_order)
 
-                print("%(Times)s  %(Codes)s: %(price)s 买入" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                              'price': self.KAMASeries[-1]-0.28})
-                print("%(Times)s  %(Codes)s: %(price)s 卖出" % {'Times': indata.Times, 'Codes': indata.Codes,
-                                                              'price': self.KAMASeries[-1] - 0.1})
         except Exception as e:
             print(e)
 
@@ -150,10 +175,10 @@ if __name__ == '__main__':
     #
     # tradeSignal.start('113026.SH')
 
-    df = pd.read_excel("C:\\Users\\Lenovo\\Desktop\\113011光大转债tick数据.xlsx")
+    df = pd.read_excel("C:\\Users\\l_cry\\Desktop\\113011光大转债tick数据.xlsx")
     for i in range(df.shape[0]):
         indata = InData()
-        indata.Times = pd.to_datetime("20190524 %s"%df.time[i].strftime("%H:%M:%S"))
+        indata.Times = pd.to_datetime("20190526 %s"%df.time[i].strftime("%H:%M:%S"))
         indata.Codes = "113011.SH"
         indata.price = df.price[i]
         tradeSignal.addSeq(indata)

@@ -1,8 +1,8 @@
 # 转债数据
 from scripts.波动率计算 import *
-df1 = pd.read_excel("C:\\Users\\Lenovo\\Desktop\\转债分钟行情数据.xlsx", sheet_name="113009广汽转债")
-df2 = pd.read_excel("C:\\Users\\Lenovo\\Desktop\\转债分钟行情数据.xlsx", sheet_name="113021中信转债")
-df = pd.read_excel("C:\\Users\\Lenovo\\Desktop\\转债分钟行情数据.xlsx", sheet_name="110053苏银转债")
+df1 = pd.read_excel("C:\\Users\\l_cry\\Desktop\\转债分钟行情数据.xlsx", sheet_name="113009广汽转债")
+df2 = pd.read_excel("C:\\Users\\l_cry\\Desktop\\转债分钟行情数据.xlsx", sheet_name="113021中信转债")
+df = pd.read_excel("C:\\Users\\l_cry\\Desktop\\转债分钟行情数据.xlsx", sheet_name="110053苏银转债")
 df['Mean'] = SMA(df.close.values, 30)
 df['Std'] = STD(df.close.values, 30)
 a = 60
