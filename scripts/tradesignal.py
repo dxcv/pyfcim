@@ -26,11 +26,13 @@ class Order:
         self.price = price
         self.volume = volume
 
-    def __repr__(self):
-        print("time:%(time)s-direction:%(direction)s-code:%(code)s-price:%(price)s-volume:%(volume)s " % {'time': time, 'direction': direction, 'code':code, 'price':price,'volume':volume})
+    def __str__(self):
+        return "time:%s-direction:%d-code:%s-price:%f-volume:%d " % (
+            self.time, self.direction, self.code, self.price, self.volume)
+
 
     def __eq__(self, other):
-        if np.all([self.direction == other.diretion, self.code == other.code, self.price == other.price, self.volume == other.volume]):
+        if np.all([self.direction == other.direction, self.code == other.code, self.price == other.price, self.volume == other.volume]):
             return True
         else: return False
 
@@ -111,21 +113,25 @@ class TradeSignal:
                     temp_buy_order = Order(indata.Times, 1, indata.Codes, indata.price + 0.01 , 1)
                     if temp_buy_order not in self.OrderList:
                         print(temp_buy_order)
+                        self.insertToDB(temp_buy_order)
                         self.OrderList.append(temp_buy_order)
                     temp_sell_order = Order(indata.Times, 0, indata.Codes, indata.price + 0.02 , 1)
                     if temp_sell_order not in self.OrderList:
                         print(temp_sell_order)
+                        self.insertToDB(temp_sell_order)
                         self.OrderList.append(temp_sell_order)
 
                     # self.PositionPriceList.append(indata.price)
 
-                temp_buy_order = Order(indata.Times, 1, indata.Codes, self.KAMASeries[-1]-0.28, 1)
+                temp_buy_order = Order(indata.Times, 1, indata.Codes, self.KAMASeries[-1]-0.28, 2)
                 if temp_buy_order not in self.OrderList:
                     print(temp_buy_order)
+                    self.insertToDB(temp_buy_orderem)
                     self.OrderList.append(temp_buy_order)
-                temp_sell_order = Order(indata.Times, 0, indata.Codes, self.KAMASeries[-1] - 0.1, 1)
+                temp_sell_order = Order(indata.Times, 0, indata.Codes, self.KAMASeries[-1] - 0.1, 2)
                 if temp_sell_order not in self.OrderList:
                     print(temp_sell_order)
+                    self.insertToDB(temp_sell_order)
                     self.OrderList.append(temp_sell_order)
 
         except Exception as e:
@@ -145,12 +151,11 @@ class TradeSignal:
         #print(self.Seq[-1])
         print("-----------")
 
-    def insertToDB(self,indata,direction):
+    def insertToDB(self, order):
         try:
             conn_43 = pymssql.connect(host="10.28.7.43", user="bond", password='bond', database="InvestSystem")
             cur = conn_43.cursor()
-            sql = """insert into TradeSignal (dt,code,price,direction) values ('%(Times)s','%(Codes)s',%(price)f,'%(direction)s')""" % {'Times': indata.Times.strftime("%Y-%m-%d %H:%M:%S"), 'Codes': indata.Codes,
-                                                                  'price': indata.price,'direction':direction}
+            sql = """insert into TradeSignal (dt,code,price,direction,volume) values ('%s','%s', %f, %d, %d)""" % order.time, order.code, order.price, order.direction, order.volume
             cur.execute(sql)
             conn_43.commit()
             return 1
