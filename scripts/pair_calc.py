@@ -1,4 +1,7 @@
 
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+sys.path.extend(['F:\\东海证券\\pyfcim', 'F:/东海证券/pyfcim'])
+
 from model.pair_config import debt_info,debt_map,debt_name_trans
 from model.CleanPriceDiff import price_diff_IB_IB,price_diff_ZJ_IB
 from datetime import datetime, timedelta
@@ -8,7 +11,7 @@ from model.Database_config import engine_103
 
 datenow = datetime.now()
 start_time  = (datenow-timedelta(7)).strftime("%Y%m%d")
-end_time = datenow.strftime("%Y%m%d")
+end_time = (datenow-timedelta(1)).strftime("%Y%m%d")
 columns=['code1','ref1','coff1','code2','ref2','coff2','latestcp','avgcp','stdcp','percentilecp',
 'latestyield','avgyield','stdyield','percentileyield']
 
@@ -20,42 +23,49 @@ def trans_name(x):
 for names in debt_map.keys():
     pairs = debt_map[names]
     for pairkey in pairs.keys():
-        if pairs[pairkey] != -1:
-            if pairkey[0].split("_")[0]=='NDF' and pairkey[1].split("_")[1] != "NDF":
-                if len(pairkey)==2:
-                    df = price_diff_ZJ_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time)
-                else:
-                    df = price_diff_ZJ_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time,cf=pairkey[2])
-                if df.shape[0] == 0:
-                    continue
-                latestvalue = df.mid_diff.dropna().iloc[-1] if df.mid_diff.dropna().shape[0]>0 else np.NaN
-                diff_avg = df.mid_diff.dropna().mean()
-                diff_std = df.mid_diff.dropna().std()
-                diff_percentile = sum(df.mid_diff.dropna()<latestvalue)/df.mid_diff.dropna().count() if latestvalue is not np.NaN else np.NaN
-                to_db_list.append([trans_name(pairkey[0]),pairs[pairkey][0],1 if len(pairkey)==2 else pairkey[2],
-                trans_name(pairkey[1]),pairs[pairkey][1],1 if len(pairkey)==2 else pairkey[2],
-                latestvalue,diff_avg,diff_std,diff_percentile])
+        print(pairs[pairkey])
+        print("--------")
+        try:
+            if pairs[pairkey] != -1:
+                if pairkey[0].split("_")[0]=='NDF' and pairkey[1].split("_")[1] != "NDF":
+                    if len(pairkey)==2:
+                        df = price_diff_ZJ_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time)
+                    else:
+                        df = price_diff_ZJ_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time,cf=pairkey[2])
+                    if df.shape[0] == 0:
+                        continue
+                    latestvalue = df.mid_diff.dropna().iloc[-1] if df.mid_diff.dropna().shape[0]>0 else np.NaN
+                    diff_avg = df.mid_diff.dropna().mean()
+                    diff_std = df.mid_diff.dropna().std()
+                    diff_percentile = sum(df.mid_diff.dropna()<latestvalue)/df.mid_diff.dropna().count() if latestvalue is not np.NaN else np.NaN
+                    to_db_list.append([trans_name(pairkey[0]),pairs[pairkey][0],1 if len(pairkey)==2 else pairkey[2],
+                    trans_name(pairkey[1]),pairs[pairkey][1],1 if len(pairkey)==2 else pairkey[2],
+                    latestvalue,diff_avg,diff_std,diff_percentile])
 
-            else:
-                if len(pairkey)==2:
-                    df = price_diff_IB_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time)
                 else:
-                    df = price_diff_IB_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time,cf=pairkey[2])
-                if df.shape[0] == 0:
-                    continue
-                latestvalue = df.cleanprice_mid_diff.dropna().iloc[-1] if df.cleanprice_mid_diff.dropna().shape[0]>0 else np.NaN
-                diff_avg = df.cleanprice_mid_diff.dropna().mean()
-                diff_std = df.cleanprice_mid_diff.dropna().std()
-                diff_percentile = sum(df.cleanprice_mid_diff.dropna()<latestvalue)/df.cleanprice_mid_diff.dropna().count() if latestvalue is not np.NaN else np.NaN
-                
-                latestyield = df.yield_mid_diff.dropna().iloc[-1] if df.yield_mid_diff.dropna().shape[0]>0 else np.NaN
-                yield_diff_avg = df.yield_mid_diff.dropna().mean()
-                yield_diff_std = df.yield_mid_diff.dropna().std()
-                yield_diff_percentile = sum(df.yield_mid_diff.dropna()<latestyield)/df.yield_mid_diff.dropna().count() if latestyield is not np.NaN else np.NaN
-                to_db_list.append([trans_name(pairkey[0]),pairs[pairkey][0],1 if len(pairkey)==2 else pairkey[2],
-                trans_name(pairkey[1]),pairs[pairkey][1],1 if len(pairkey)==2 else pairkey[3],
-                latestvalue,diff_avg,diff_std,diff_percentile,
-                latestyield,yield_diff_avg,yield_diff_std,yield_diff_percentile])
+                    if len(pairkey)==2:
+                        df = price_diff_IB_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time)
+                    else:
+                        df = price_diff_IB_IB(pairs[pairkey][0],pairs[pairkey][1],start_time,end_time,cf=pairkey[2])
+                    if df.shape[0] == 0:
+                        continue
+                    latestvalue = df.cleanprice_mid_diff.dropna().iloc[-1] if df.cleanprice_mid_diff.dropna().shape[0]>0 else np.NaN
+                    diff_avg = df.cleanprice_mid_diff.dropna().mean()
+                    diff_std = df.cleanprice_mid_diff.dropna().std()
+                    diff_percentile = sum(df.cleanprice_mid_diff.dropna()<latestvalue)/df.cleanprice_mid_diff.dropna().count() if latestvalue is not np.NaN else np.NaN
+
+                    latestyield = df.yield_mid_diff.dropna().iloc[-1] if df.yield_mid_diff.dropna().shape[0]>0 else np.NaN
+                    yield_diff_avg = df.yield_mid_diff.dropna().mean()
+                    yield_diff_std = df.yield_mid_diff.dropna().std()
+                    yield_diff_percentile = sum(df.yield_mid_diff.dropna()<latestyield)/df.yield_mid_diff.dropna().count() if latestyield is not np.NaN else np.NaN
+                    to_db_list.append([trans_name(pairkey[0]),pairs[pairkey][0],1 if len(pairkey)==2 else pairkey[2],
+                    trans_name(pairkey[1]),pairs[pairkey][1],1 if len(pairkey)==2 else pairkey[3],
+                    latestvalue,diff_avg,diff_std,diff_percentile,
+                    latestyield,yield_diff_avg,yield_diff_std,yield_diff_percentile])
+        except Exception as e:
+            print(e)
+
+
 
 df_todb = pd.DataFrame(to_db_list,columns=columns)
 df_todb['updatetime'] = datenow.date()
@@ -83,4 +93,4 @@ for type1 in debt_map.keys():
 debt_map_columns = ['code1','code2','instance1','instance2'] 
 debt_map_df = pd.DataFrame(debt_map_list,columns=debt_map_columns)
 debt_map_df['updatetime'] = datenow.date()
-debt_map_df.to_sql('debt_map',con=engine_103, if_exists="append", index=False, chunksize=4000)
+debt_map_df.to_sql('debt_map', con=engine_103, if_exists="append", index=False, chunksize=4000)

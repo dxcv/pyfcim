@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-dfTradeDetail = pd.read_excel("C:\\Users\\l_cry\\Desktop\\利率互换\\利率互换-本方成交明细.xlsx")
-dfOffDetail = pd.read_excel("C:\\Users\\l_cry\\Desktop\\利率互换\\利率互换-冲销明细.xlsx")
-dfResidueDetail = pd.read_excel("C:\\Users\\l_cry\\Desktop\\利率互换\\利率互换-估值存量明细.xlsx")
+dfTradeDetail = pd.read_excel("F:\\利率互换\\利率互换-本方成交明细.xlsx")
+dfOffDetail = pd.read_excel("F:\\利率互换\\利率互换-冲销明细.xlsx")
+dfResidueDetail = pd.read_excel("F:\\利率互换\\利率互换-估值存量明细.xlsx")
 
 # 预定义
 Year = 2019
-Month = 3
+Month = 4
 CurrentMonth = datetime(Year,Month,1)
 CurrentYear = datetime(Year,1,1)
 
@@ -61,7 +61,7 @@ DF1[('交易日期','')] = dfResidueDetail['合约编号'].apply(lambda x: dfTra
 NADF1 = pd.DataFrame(columns=['协议类别','上月末本年累计','本月新增','本年累计','本月末有效'])
 NADF1['协议类别'] = ['主协议','补充协议','履约保障协议','交易确认书']
 NADF1 = NADF1.fillna(0)
-NADF1.loc[0,'上月末本年累计'] = (dfTradeDetail["成交时间"]<CurrentMonth).sum()
+NADF1.loc[0,'上月末本年累计'] = (CurrentYear<=dfTradeDetail["成交时间"]<CurrentMonth).sum()
 NADF1.loc[0,'本月新增'] = (dfTradeDetail["成交时间"]>=CurrentMonth).sum()
 NADF1.loc[0,'本月末有效'] = dfResidueDetail.shape[0]
 
@@ -110,25 +110,26 @@ NADF2 = pd.DataFrame(columns=[['序号','交易日期','填报机构名称','填
                               ['','','','','','','','','','','','','','','利率（%）','支付周期','计息基准','参考利率名称','利差（bps）','支付周期','重置频率','计息基准','']
                               ])
 temp = dfTradeDetail[dfTradeDetail['成交时间']>=CurrentMonth]
-NADF2[('交易日期', '')] = temp['成交时间']
-NADF2['填报机构名称'] = '东海证券'
-NADF2['交易对手方名称'] = temp['对手方']
-NADF2['交易对手方类型'] = temp['对手方'].apply(lambda x: '07' if '银行' in x else '01' if '证券' in x else '')
-NADF2['交易对手是否为专业机构'] = '01'
-NADF2['固定利息支付方（机构名称）'] = temp[['对手方','交易方向']].apply(lambda row : '东海证券' if row['交易方向']=='支付固定利率' else row['对手方'],axis=1)
-NADF2['浮动利息支付方（机构名称）'] = temp[['对手方','交易方向']].apply(lambda row : row['对手方'] if row['交易方向']=='支付固定利率' else '东海证券' ,axis=1)
-NADF2['名义本金（亿元）'] = temp['名义本金额(万元)']/10000
-NADF2[('起息日','')] = temp['起息日']
-NADF2[('到期日','')] = temp['到期日']
-NADF2[('合约期限（天）','')] = temp[['起息日','到期日']].apply(lambda row : pd.to_datetime(row['到期日'])-pd.to_datetime(row['起息日']), axis=1).apply(lambda x:x.days)
-NADF2[('固定利率','支付周期')] = temp['固定利率支付周期'].apply(lambda x: x.replace("季","每季度"))
-NADF2[('固定利率','计息基准')] = temp['固定利率计息基准'].apply(lambda x: x.replace("实际","A"))
-NADF2[('浮动利率', '参考利率名称')] = temp['参考利率']
-NADF2[('浮动利率', '利差（bps）')] = 0
-NADF2[('浮动利率', '支付周期')] = temp['浮动利率支付周期'].apply(lambda x: x.replace("季","每季度"))
-NADF2[('浮动利率', '计息基准')] = temp['浮动利率计息基准'].apply(lambda x: x.replace("实际","A"))
-NADF2[('首次利息支付（互换）日','')] = temp['初始支付日-固定利率方']
-NADF2['序号'] = [i+1 for i in range(temp.shape[0])]
+if temp.shape[0] >= 1:
+    NADF2[('交易日期', '')] = temp['成交时间']
+    NADF2['填报机构名称'] = '东海证券'
+    NADF2['交易对手方名称'] = temp['对手方']
+    NADF2['交易对手方类型'] = temp['对手方'].apply(lambda x: '07' if '银行' in x else '01' if '证券' in x else '')
+    NADF2['交易对手是否为专业机构'] = '01'
+    NADF2['固定利息支付方（机构名称）'] = temp[['对手方','交易方向']].apply(lambda row : '东海证券' if row['交易方向']=='支付固定利率' else row['对手方'],axis=1)
+    NADF2['浮动利息支付方（机构名称）'] = temp[['对手方','交易方向']].apply(lambda row : row['对手方'] if row['交易方向']=='支付固定利率' else '东海证券' ,axis=1)
+    NADF2['名义本金（亿元）'] = temp['名义本金额(万元)']/10000
+    NADF2[('起息日','')] = temp['起息日']
+    NADF2[('到期日','')] = temp['到期日']
+    NADF2[('合约期限（天）','')] = temp[['起息日','到期日']].apply(lambda row : pd.to_datetime(row['到期日'])-pd.to_datetime(row['起息日']), axis=1).apply(lambda x:x.days)
+    NADF2[('固定利率','支付周期')] = temp['固定利率支付周期'].apply(lambda x: x.replace("季","每季度"))
+    NADF2[('固定利率','计息基准')] = temp['固定利率计息基准'].apply(lambda x: x.replace("实际","A"))
+    NADF2[('浮动利率', '参考利率名称')] = temp['参考利率']
+    NADF2[('浮动利率', '利差（bps）')] = 0
+    NADF2[('浮动利率', '支付周期')] = temp['浮动利率支付周期'].apply(lambda x: x.replace("季","每季度"))
+    NADF2[('浮动利率', '计息基准')] = temp['浮动利率计息基准'].apply(lambda x: x.replace("实际","A"))
+    NADF2[('首次利息支付（互换）日','')] = temp['初始支付日-固定利率方']
+    NADF2['序号'] = [i+1 for i in range(temp.shape[0])]
 
 
 # 写入Excel中
@@ -143,3 +144,20 @@ NADF12.to_excel(NADFWriter, sheet_name='业务规模统计')
 NADF2.to_excel(NADFWriter, sheet_name='利率互换明细')
 NADFWriter.close()
 
+
+
+
+# import pandas as pd
+# import pymssql
+# dfList =[]
+# codelist = ["180217","160219","140226","120252","120250","120251","110256","110255","090214","090213","090215","050210","040224","180322","180321"]
+# conn_43 = pymssql.connect(host = "10.28.7.43",user = "bond",password = 'bond',database = "qbdb")
+# for item in codelist:
+#     sql = """SELECT * FROM openquery(TEST,'select  DEALBONDNAME,DEALBONDCODE, DEALCLEANPRICE, DEALYIELD, DEALTOTALFACEVALUE/10000 DEALTOTALFACEVALUE,TRADEMETHOD, TRANSACTTIME from marketanalysis.CMDSCBMDEALT where DEALBONDCODE=''%s''' )""" % item
+#     dfList.append(pd.read_sql(sql,conn_43))
+# DFWriter = pd.ExcelWriter("银行间交易记录.xlsx")
+# for i in range(15):
+#     dfList[i].to_excel(DFWriter, sheet_name=codelist[i])
+# DFWriter.close()
+# i=0
+# dfList[i].to_excel("test.xlsx", sheet_name=codelist[i])

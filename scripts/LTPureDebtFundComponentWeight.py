@@ -11,12 +11,12 @@ from scipy import optimize
 from matplotlib.font_manager import FontProperties
 import matplotlib
 from sqlalchemy import create_engine
-font = FontProperties(fname='/Library/Fonts/Songti.ttc')
+#font = FontProperties(fname='/Library/Fonts/Songti.ttc')
 #指定默认字体
-matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-matplotlib.rcParams['font.family']='sans-serif'
+#matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+#matplotlib.rcParams['font.family']='sans-serif'
 #解决负号'-'显示为方块的问题
-matplotlib.rcParams['axes.unicode_minus'] = False
+#matplotlib.rcParams['axes.unicode_minus'] = False
 
 tz_sh = pytz.timezone('Asia/Shanghai')
 # 启动wind

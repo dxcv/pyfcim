@@ -11,7 +11,7 @@ import pymssql
 import numpy as np
 import datetime
 from sqlalchemy import create_engine
-from model.BondCalc import BondCalc
+from data.BondCalc import BondCalc
 
 
 class QBdata:
@@ -29,7 +29,8 @@ class QBdata:
     # 入库债券
     bond_pool = ('180013.IB','180023.IB','180016.IB','180015.IB','180214.IB','180204.IB','170215.IB','170210.IB',
          '180011.IB','180209.IB', '180208.IB', '180211.IB', '180210.IB', '180206.IB', '180212.IB' ,
-        	'180304.IB','180309.IB','180313.IB','180406.IB','180010.IB','180019.IB','180205.IB')
+        	'180304.IB','180309.IB','180313.IB','180406.IB','180010.IB','180019.IB','180205.IB','190205.IB',
+                 '190210.IB')
 
     # bond_pool = ('180205.IB')
 
@@ -62,6 +63,7 @@ class QBdata:
         ofr0_cleanprice = bondcalc.PVandCleanPrice_calc(Datestr, ofr0)[1] if not np.isnan(ofr0) else np.nan
         trdyield0_cleanprice = bondcalc.PVandCleanPrice_calc(Datestr, trdyield0)[1] if not np.isnan(
             trdyield0) else np.nan
+
         # 将时间对齐到指定的网格
         DateIndex = pd.date_range(start=Datestr + " 09:00:01", end=Datestr + " 16:30:00", freq='s')
         df2 = df2.reindex(DateIndex)
@@ -198,15 +200,16 @@ class QBdata:
         df = pd.read_sql(sql, conn)
         return df
 
+if __name__ == '__main__':
+    dataDicts = dict()
+    # routine_task('2018-08-01', '2018-11-14', dataDicts)
+    dbdata = QBdata()
+    now = datetime.datetime.now()
+    yesterday = now - datetime.timedelta(1)
+    tomorrow = now + datetime.timedelta(1)
+    dbdata.routine_task(now.strftime("%Y-%m-%d 00:00:00"), tomorrow.strftime("%Y-%m-%d 00:00:00"), dataDicts)
 
-dataDicts = dict()
-# routine_task('2018-08-01', '2018-11-14', dataDicts)
-dbdata = QBdata()
-now = datetime.datetime.now()
-yesterday = now - datetime.timedelta(1)
-tomorrow = now + datetime.timedelta(1)
-dbdata.routine_task(now.strftime("%Y-%m-%d 00:00:00"), tomorrow.strftime("%Y-%m-%d 00:00:00"), dataDicts)
-
+# dbdata.routine_task(yesterday.strftime("%Y-%m-%d 00:00:00"), now.strftime("%Y-%m-%d 00:00:00"), dataDicts)
 # routineTask('20181102','20181103',dataDicts)
 
 

@@ -9,7 +9,7 @@ matplotlib.rcParams['font.sans-serif'] = ['SimHei']
 matplotlib.rcParams['font.family']='sans-serif'
 #解决负号'-'显示为方块的问题
 matplotlib.rcParams['axes.unicode_minus'] = False
-df = pd.read_excel("C:\\Users\\l_cry\\Desktop\\113011光大转债tick数据.xlsx")
+df = pd.read_excel("C:\\Users\\Lenovo\\Desktop\\113011光大转债tick数据.xlsx")
 
 df.time = [pd.to_datetime("20190524 %s" % df.time[i].strftime("%H:%M:%S")) for i in range(df.shape[0])]
 df.index = df.time
